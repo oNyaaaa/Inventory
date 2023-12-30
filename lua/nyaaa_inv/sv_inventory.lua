@@ -43,10 +43,11 @@ function meta:RemoveInventoryItem(pos)
     terminator.TerminalNetMsg(self)
 end
 
-function meta:AddInventoryItem(pos, item)
+function meta:AddInventoryItem(name, pos, item)
     table.insert(
         self.Weapons_Inv,
         {
+            Name = name,
             Class = pos,
             Model = item,
         }
@@ -67,7 +68,7 @@ timer.Create(
                 function(ply, ent, wep)
                     local oldwep = wep
                     ent:Remove()
-                    ply:AddInventoryItem(oldwep:GetClass(), oldwep:GetModel())
+                    ply:AddInventoryItem(oldwep.PrintName, oldwep:GetClass(), oldwep:GetModel())
                     oldwep = nil
                 end
             )

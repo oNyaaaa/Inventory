@@ -1,6 +1,7 @@
 local Tbl = {}
 local ButtonTable = {}
 local modelPanel = {}
+local buttonPanel = {}
 curry = {}
 curry.Modules = {}
 Terminal = {}
@@ -12,6 +13,13 @@ function curry:GetBool(Names)
 end
 
 function curry:Add(str, val)
+    if curry:GetBool(str) == str then
+        print("Failed to load module for: " .. tostring(str))
+        return
+    else
+        print("Loaded module: " .. tostring(str))
+    end
+
     local meltdown = {{function() return {val(str)} end}}
     meltdown[1][1]()
 end
@@ -34,7 +42,7 @@ net.Receive(
 curry:Add(
     "SetInventoryPosition",
     function(n)
-        function SetInventoryPosition(wong, model, slot)
+        function SetInventoryPosition(wong, name, model, slot)
             local OpenSlot = true
             for k, v in pairs(Terminal.Table) do
                 if v.Slot == k and v.Occupied == true then OpenSlot = false end
@@ -44,13 +52,6 @@ curry:Add(
             modelPanel[slot] = vgui.Create("DModelPanel", wong)
             modelPanel[slot]:SetModel(model)
             modelPanel[slot]:SetSize(100, 100)
-            modelPanel[slot].DoClick = function()
-                net.Start("ConCluster")
-                net.WriteFloat(slot)
-                net.WriteString(model)
-                net.SendToServer()
-            end
-
             if modelPanel[slot].Entity ~= nil then
                 local PrevMins, PrevMaxs = modelPanel[slot].Entity:GetRenderBounds()
                 modelPanel[slot]:SetCamPos(PrevMins:Distance(PrevMaxs) * Vector(0.5, 0.5, 0.5))
@@ -60,6 +61,25 @@ curry:Add(
             modelPanel[slot].LayoutEntity = function(ent) end
             modelPanel[slot].Slot = k
             modelPanel[slot].Occupied = true
+            buttonPanel[slot] = vgui.Create("DButton", modelPanel[slot])
+            buttonPanel[slot]:Dock(BOTTOM)
+            buttonPanel[slot]:SetText(name)
+            buttonPanel[slot]:SetSize(0, 20)
+            buttonPanel[slot].DoClick = function()
+                Derma_Query(
+                    "Equip this weapon!",
+                    "Confirmation:",
+                    "Yes",
+                    function()
+                        net.Start("ConCluster")
+                        net.WriteFloat(slot)
+                        net.WriteString(model)
+                        net.SendToServer()
+                    end,
+                    "No",
+                    function() end
+                )
+            end
         end
     end
 )
@@ -67,13 +87,6 @@ curry:Add(
 curry:Add(
     "Inventory",
     function(n)
-        if curry:GetBool(n) == n then
-            print("Failed to load module for: " .. tostring(n))
-            return
-        else
-            print("Loaded module: " .. tostring(n))
-        end
-
         local function Inventory(pl, c, args)
             if panel and IsValid(panel) then panel:Remove() end
             panel = vgui.Create("DFrame")
@@ -98,7 +111,7 @@ curry:Add(
             local fill = 1
             if #Terminal.Table > 0 then
                 for k, v in pairs(Terminal.Table) do
-                    SetInventoryPosition(Tbl[fill], v.Model, fill)
+                    SetInventoryPosition(Tbl[fill], v.Name, v.Model, fill)
                     fill = fill + 1
                 end
             end
