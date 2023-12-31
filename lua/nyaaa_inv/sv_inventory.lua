@@ -1,5 +1,6 @@
 util.AddNetworkString("ConCluster")
 util.AddNetworkString("Terminal_Receive")
+util.AddNetworkString("ConCluster_Fuck")
 local meta = FindMetaTable("Player")
 local cluster = net
 local terminator = {}
@@ -50,8 +51,21 @@ function meta:AddInventoryItem(name, pos, item)
             Name = name,
             Class = pos,
             Model = item,
+            Slot = #self.Weapons_Inv,
         }
     )
+
+    terminator.TerminalNetMsg(self)
+end
+
+function meta:ModifyInventory(indx, name, pos, newslot, item)
+    print(indx, name, pos, newslot, item)
+    self.Weapons_Inv[indx] = {
+        Name = name,
+        Class = pos,
+        Model = item,
+        Slot = newslot,
+    }
 
     terminator.TerminalNetMsg(self)
 end
@@ -75,6 +89,18 @@ timer.Create(
 
             timer.Destroy("CurryDarkpAdd")
         end
+    end
+)
+
+net.Receive(
+    "ConCluster_Fuck",
+    function(len, ply)
+        local name = net.ReadString()
+        local flt = net.ReadFloat()
+        local newslot = net.ReadFloat()
+        local mdl = net.ReadString()
+        local closs = net.ReadString()
+        ply:ModifyInventory(flt, name, closs, newslot, mdl)
     end
 )
 

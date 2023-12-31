@@ -2,9 +2,10 @@ local Tbl = {}
 local ButtonTable = {}
 local modelPanel = {}
 local buttonPanel = {}
+local keepler = {}
 curry = {}
 curry.Modules = {}
-Terminal = {}
+Terminal = Terminal or {}
 local SetInventoryPosition
 function curry:GetBool(Names)
     for k, v in pairs(curry.Modules) do
@@ -24,7 +25,7 @@ function curry:Add(str, val)
     meltdown[1][1]()
 end
 
-Terminal.Table = {}
+Terminal.Table = Terminal.Table or {}
 local panel
 net.Receive(
     "Terminal_Receive",
@@ -42,7 +43,7 @@ net.Receive(
 curry:Add(
     "SetInventoryPosition",
     function(n)
-        function SetInventoryPosition(wong, name, model, slot)
+        function SetInventoryPosition(wong, name, model, slot, wep)
             local OpenSlot = true
             for k, v in pairs(Terminal.Table) do
                 if v.Slot == k and v.Occupied == true then OpenSlot = false end
@@ -51,6 +52,9 @@ curry:Add(
             if OpenSlot == false then return end
             modelPanel[slot] = vgui.Create("DModelPanel", wong)
             modelPanel[slot]:SetModel(model)
+            modelPanel[slot].Models = model
+            modelPanel[slot].Nice = name
+            modelPanel[slot].Class = wep
             modelPanel[slot]:SetSize(100, 100)
             if modelPanel[slot].Entity ~= nil then
                 local PrevMins, PrevMaxs = modelPanel[slot].Entity:GetRenderBounds()
@@ -59,7 +63,7 @@ curry:Add(
             end
 
             modelPanel[slot].LayoutEntity = function(ent) end
-            modelPanel[slot].Slot = k
+            modelPanel[slot].Slot = slot
             modelPanel[slot].Occupied = true
             buttonPanel[slot] = vgui.Create("DButton", modelPanel[slot])
             buttonPanel[slot]:Dock(BOTTOM)
@@ -80,13 +84,28 @@ curry:Add(
                     function() end
                 )
             end
+            return modelPanel[slot]
         end
     end
 )
 
+local Position_Slot = {}
 curry:Add(
     "Inventory",
     function(n)
+        function Drop(self, tableOfDroppedPanels, isDropped, menuIndex, mouseX, mouseY)
+            if isDropped then
+                net.Start("ConCluster_Fuck")
+                net.WriteString(tableOfDroppedPanels[1].Nice)
+                net.WriteFloat(tableOfDroppedPanels[1].Slot)
+                net.WriteFloat(vgui.GetHoveredPanel().Item)
+                net.WriteString(tableOfDroppedPanels[1].Models)
+                net.WriteString(tableOfDroppedPanels[1].Class)
+                net.SendToServer()
+                tableOfDroppedPanels[1]:SetParent(Tbl[vgui.GetHoveredPanel().Item])
+            end
+        end
+
         local function Inventory(pl, c, args)
             if panel and IsValid(panel) then panel:Remove() end
             panel = vgui.Create("DFrame")
@@ -105,13 +124,16 @@ curry:Add(
                 Tbl[i] = vgui.Create("DPanel")
                 Tbl[i]:SetSize(100, 100)
                 Tbl[i].Item = i
+                Tbl[i]:Receiver("Minge", Drop)
                 grid:AddItem(Tbl[i])
             end
 
             local fill = 1
             if #Terminal.Table > 0 then
                 for k, v in pairs(Terminal.Table) do
-                    SetInventoryPosition(Tbl[fill], v.Name, v.Model, fill)
+                    keepler[k] = SetInventoryPosition(Tbl[v.Slot], v.Name, v.Model, fill, v.Class)
+                    keepler[k]:Droppable("Minge")
+                    --keepler[k]:SetParent(Tbl[5])
                     fill = fill + 1
                 end
             end
