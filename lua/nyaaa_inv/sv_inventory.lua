@@ -51,15 +51,14 @@ function meta:AddInventoryItem(name, pos, item)
             Name = name,
             Class = pos,
             Model = item,
-            Slot = #self.Weapons_Inv,
+            Slot = #self.Weapons_Inv + 1,
         }
     )
-
+    PrintTable(self.Weapons_Inv)
     terminator.TerminalNetMsg(self)
 end
 
 function meta:ModifyInventory(indx, name, pos, newslot, item)
-    print(indx, name, pos, newslot, item)
     self.Weapons_Inv[indx] = {
         Name = name,
         Class = pos,

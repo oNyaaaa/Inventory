@@ -89,12 +89,11 @@ curry:Add(
     end
 )
 
-local Position_Slot = {}
 curry:Add(
     "Inventory",
     function(n)
         function Drop(self, tableOfDroppedPanels, isDropped, menuIndex, mouseX, mouseY)
-            if isDropped then
+            if isDropped and vgui.GetHoveredPanel().Item ~= nil then
                 net.Start("ConCluster_Fuck")
                 net.WriteString(tableOfDroppedPanels[1].Nice)
                 net.WriteFloat(tableOfDroppedPanels[1].Slot)
@@ -133,7 +132,6 @@ curry:Add(
                 for k, v in pairs(Terminal.Table) do
                     keepler[k] = SetInventoryPosition(Tbl[v.Slot], v.Name, v.Model, fill, v.Class)
                     keepler[k]:Droppable("Minge")
-                    --keepler[k]:SetParent(Tbl[5])
                     fill = fill + 1
                 end
             end
