@@ -33,7 +33,7 @@ net.Receive(
         Terminal.Table = {}
         local terminal_Tbl = net.ReadTable()
         Terminal.Table = terminal_Tbl
-        if panel and IsValid(panel) then
+        if panel and IsValid(panel) and net.ReadBool() == true then
             panel:Remove()
             LocalPlayer():ConCommand("Nyaaa_Inventory")
         end
@@ -98,8 +98,6 @@ curry:Add(
                 net.WriteString(tableOfDroppedPanels[1].Nice)
                 net.WriteFloat(tableOfDroppedPanels[1].Slot)
                 net.WriteFloat(vgui.GetHoveredPanel().Item)
-                net.WriteString(tableOfDroppedPanels[1].Models)
-                net.WriteString(tableOfDroppedPanels[1].Class)
                 net.SendToServer()
                 tableOfDroppedPanels[1]:SetParent(Tbl[vgui.GetHoveredPanel().Item])
             end
@@ -119,7 +117,7 @@ curry:Add(
             grid:SetCols(7)
             grid:SetColWide(105)
             grid:SetRowHeight(105)
-            for i = 1, 36 do
+            for i = 1, 35 do
                 Tbl[i] = vgui.Create("DPanel")
                 Tbl[i]:SetSize(100, 100)
                 Tbl[i].Item = i
@@ -130,8 +128,8 @@ curry:Add(
             local fill = 1
             if #Terminal.Table > 0 then
                 for k, v in pairs(Terminal.Table) do
-                    keepler[k] = SetInventoryPosition(Tbl[v.Slot], v.Name, v.Model, fill, v.Class)
-                    keepler[k]:Droppable("Minge")
+                    keepler[k] = SetInventoryPosition(Tbl[fill], v.Name, v.Model, fill, v.Class)
+                    if IsValid(keepler[k]) then keepler[k]:Droppable("Minge") end
                     fill = fill + 1
                 end
             end
